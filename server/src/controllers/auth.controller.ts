@@ -1,0 +1,82 @@
+import { signInSchema, signUpSchema } from "../types";
+import { AppDataSource } from "../database/appDataSource";
+import jwt from "jsonwebtoken";
+import { Router } from 'express';
+import bcrypt from "bcrypt";
+import { User } from "../entities/user.entity";
+const router = Router();
+
+const userRepository = AppDataSource.getRepository(User);
+
+router.post("/sign-up", async(req, res) => {
+    const { data, success } = signUpSchema.safeParse(req.body);
+    if(!success && !data){
+        res.status(411).json({
+            message: "Incorrect input parameters"
+        })
+        return
+    }
+    const existingUser = await userRepository.findOne({
+        where: {
+            email: data.email
+        }
+    })
+
+    if(existingUser){
+        res.status(409)
+        .json({
+            message: "Account already exists"
+        })
+        return
+    }
+
+    const hashPassword = await bcrypt.hash(data.password, 10);
+    const user = userRepository.create({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: hashPassword
+    })
+    await userRepository.save(user);
+    res.status(200)
+    .json({
+        message: "User saved successfully"
+    })
+})
+
+router.post("/sign-in", async(req, res) => {
+    const { data, success } = signInSchema.safeParse(req.body);
+    if(!success && !data){
+        res.status(411).json({
+            message: "Incorrect input parameters"
+        })
+        return
+    }
+
+    const user = await userRepository.findOne({ 
+        where: { 
+            email: data.email
+        }})
+    if(!user){
+        res.status(411).json({
+            message: "user doesn't exist"
+        })
+        return;
+    }
+    const isPasswordVaild = await bcrypt.compare(data.password, user?.password);
+    if(!isPasswordVaild){
+        res.status(401).json({
+            message: "email or password are incorrect"
+        })
+    }
+    const token = jwt.sign({
+        email: data.email
+    }, process.env.AUTH_JWT_SECRET!);
+
+    res.status(200).json({
+        message: "Sign in successfully",
+        token
+    })
+})
+
+export default router;

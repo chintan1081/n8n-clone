@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/types.ts","./src/controllers/auth.controller.ts","./src/database/appdatasource.ts","./src/entities/user.entity.ts","./src/services/aiagent.service.ts"],"version":"5.9.2"}
