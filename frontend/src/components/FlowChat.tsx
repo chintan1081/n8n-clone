@@ -1,26 +1,27 @@
-import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, Handle, Position, Background, Panel } from '@xyflow/react';
+import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, Handle, Position, Background, Panel, type Edge, type Node, type EdgeChange, type EdgeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useCallback, useState } from 'react';
-import { FiPlus } from 'react-icons/fi';
+import { useCallback, useEffect, useState } from 'react';
+import { FiMinus, FiPlus } from 'react-icons/fi';
 import SourceNode from './nodes/SourceNode';
-import { TbBrandTelegram } from 'react-icons/tb';
 import TargetNode from './nodes/TargetNode';
 import AiAgentNode from './nodes/AiAgentNode';
 import { FaRobot } from 'react-icons/fa';
+import { Get, Post, Put } from '@/assets/axios';
+import { useNavigate, useParams } from 'react-router-dom';
+import Navbar from './Navbar';
 
 function CustomNode({ data }: any) {
     return (
         <>
             <div className='p-4 bg-zinc-900 text-white border rounded flex gap-2 items-center'>
-              <div className='text-lg'><FaRobot /></div>
-              <div className='text-sm'>AI Agent</div>
+                <div className='text-lg'><FaRobot /></div>
+                <div className='text-sm'>AI Agent</div>
             </div>
             <Handle type="target" position={Position.Left} />
             <Handle type="source" position={Position.Right} />
-            <Handle type="source" position={Position.Bottom} style={{left: '20%'}} />
-            <Handle type="source" position={Position.Bottom} style={{left: '30%'}} />
-            <Handle type="source" position={Position.Bottom} style={{left: '80%'}} />
-
+            <Handle type="source" position={Position.Bottom} style={{ left: '20%' }} />
+            <Handle type="source" position={Position.Bottom} style={{ left: '30%' }} />
+            <Handle type="source" position={Position.Bottom} style={{ left: '80%' }} />
         </>
 
     );
@@ -52,20 +53,41 @@ const initialNodes = [
 
 // const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
 
-
-
-export default function Flow() {
+export default function FlowChart() {
+    const { id: workflowId } = useParams();
+    const navigate = useNavigate();
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
+    const [title, setTitle] = useState("");
+
+    useEffect(() => {
+        Get(`/api/workflow/${workflowId}`).then((response) => {
+            const data = response.data;
+            console.log(data.nodes,'.nid..............nodedata');
+            const nodesWithDelete = data.nodes.map((node : any) => ({
+                ...node,
+                data: {
+                ...node.data,
+                onDelete: HandleDeleteNode
+            }}))
+            setNodes(nodesWithDelete);
+            setEdges(data.edges);
+            setTitle(data.title);
+        }).catch((error) => {
+            console.log(error);
+        })
+    }, [workflowId])
 
     const onNodesChange = useCallback(
         (changes) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
         [],
     );
+
     const onEdgesChange = useCallback(
-        (changes) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
+        (changes: EdgeChange<Edge>[]) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
         [],
     );
+
     const onConnect = useCallback(
         (params) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
         [],
@@ -74,47 +96,94 @@ export default function Flow() {
 
     const [nodebar, setNodebar] = useState(false)
     const nodebarItems = [
-        { title: 'Trigger Manually', nodeId: 'manual', type: 'sourceNode', x:0, y:0 },
-        { title: 'Telegram', nodeId: 'telegram', type: 'targetNode', x:100, y:100 },
-        { title: 'Email' , nodeId: 'email' },
-        { title: 'AI Agent', nodeId: 'aiAgent', type: 'aiAgentnode', x:100, y:0 }
+        { title: 'Trigger Manually', nodeId: 'manual', type: 'sourceNode', x: 0, y: 0 },
+        { title: 'Telegram', nodeId: 'telegram', type: 'targetNode', x: 100, y: 100 },
+        { title: 'Email', nodeId: 'email' },
+        { title: 'AI Agent', nodeId: 'aiAgent', type: 'aiAgentnode', x: 100, y: 0 }
     ]
 
     const HandleNode = (nodebarItem: any) => {
-       setNodes((prev : any) => {
-        return [
-        ...prev,
-        {
-            id: nodebarItem.nodeId,
-            type: nodebarItem.type,
-            position: { x: nodebarItem.x, y: nodebarItem.y }
-        }
-       ]})
+        setNodes((prev: any) => {
+            return [
+                ...prev,
+                {
+                    id: nodebarItem.nodeId,
+                    type: nodebarItem.type,
+                    position: { x: nodebarItem.x, y: nodebarItem.y },
+                    data: { id: nodebarItem.nodeId, onDelete: HandleDeleteNode}
+                }
+            ]
+        })
+    }
+
+    const SubmitWorkflow = async () => {
+        const response = await Post("/api/workflow", {
+            nodes,
+            edges,
+            title
+        });
+        navigate(`${location.pathname}/${response.data.data.id}`);
+    }
+
+    const UpdateWorkflow = async () => {
+        const response = await Put(`/api/workflow/${workflowId}`, {
+            nodes,
+            edges,
+            title
+        })
+        console.log(response.data);
+        navigate(location.pathname);
+    }
+
+    const HandleDeleteNode = (id: string) => {
+        console.log(nodes,'......nodes');
+        
+        setNodes((prev) => {
+            const node = prev.filter((node) => node.id !== id)
+            return node;
+        })
+        setEdges((prev) => {
+            return prev.filter((edge) => edge.source !== id && edge.target !== id)
+        })
+    }
+
+    const HandleDeleteEdge = (currentEdge) => {
+        setEdges((prev) => {
+            return prev.filter((edge) => edge.id !== currentEdge.id)
+        })
     }
 
     return (
-        <div className='grid grid-cols-4 text-black col-span-3 bg-zinc-900 h-[calc(100%-70px)] w-full'>
+        <div className='grid grid-cols-4 text-black col-span-3 bg-zinc-900 h-full w-full'>
+            <div className='absolute bg-black text-white p-2 z-1 rounded'>
+                <label className="text-sm mr-2">Title:</label>
+                <input onChange={(e) => setTitle(e.target.value)} defaultValue={title} className='border-0 outline-none border-b w-24' placeholder="enter title" type="text" />
+            </div>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
                 nodeTypes={nodeTypes}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
+                onEdgeClick={(event, edge) => HandleDeleteEdge(edge)}
                 onConnect={onConnect}
                 fitView
                 className={nodebar ? 'col-span-3' : 'col-span-4'}
             >
                 <Background gap={10} />
                 <Panel position='top-right'>
-                    <button onClick={() => setNodebar(!nodebar)} className='border m-4 p-2 cursor-pointer bg-black rounded text-white hover:bg-gray-900'><FiPlus /></button>
+                    <button onClick={() => setNodebar(!nodebar)} className='border m-4 p-2 cursor-pointer bg-black rounded text-white hover:bg-gray-900'>
+                        {!nodebar ? <FiPlus /> : <FiMinus />}
+                    </button>
                 </Panel>
             </ReactFlow>
-            <div className={`${nodebar ? 'grid-cols-1' : 'hidden'} bg-black text-white`}>
+            <div className={`${nodebar ? 'grid-cols-1' : 'hidden'} bg-black text-white relative`}>
                 <div className='p-4 font-semibold text-xl border-b'>Workflow</div>
-                {nodebarItems.map((nodebarItem) => 
-                  <div onClick={() => HandleNode(nodebarItem)} className='p-2 pl-4 hover:bg-gray-900 border-b cursor-pointer'>
-                    {nodebarItem.title}
-                </div>)}
+                {nodebarItems.map((nodebarItem, index) =>
+                    <div key={index} onClick={() => HandleNode(nodebarItem)} className='p-2 pl-4 hover:bg-gray-900 border-b cursor-pointer'>
+                        {nodebarItem.title}
+                    </div>)}
+                <div onClick={workflowId ? UpdateWorkflow : SubmitWorkflow} className='absolute bottom-0 p-2 cursor-pointer rounded text-center border-t w-full hover:bg-gray-900'>Save</div>
             </div>
         </div>
     );
