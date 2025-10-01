@@ -8,7 +8,6 @@ import AiAgentNode from './nodes/AiAgentNode';
 import { FaRobot } from 'react-icons/fa';
 import { Get, Post, Put } from '@/assets/axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import Navbar from './Navbar';
 
 function CustomNode({ data }: any) {
     return (
@@ -63,13 +62,14 @@ export default function FlowChart() {
     useEffect(() => {
         Get(`/api/workflow/${workflowId}`).then((response) => {
             const data = response.data;
-            console.log(data.nodes,'.nid..............nodedata');
-            const nodesWithDelete = data.nodes.map((node : any) => ({
+            console.log(data.nodes, '.nid..............nodedata');
+            const nodesWithDelete = data.nodes.map((node: any) => ({
                 ...node,
                 data: {
-                ...node.data,
-                onDelete: HandleDeleteNode
-            }}))
+                    ...node.data,
+                    onDelete: HandleDeleteNode
+                }
+            }))
             setNodes(nodesWithDelete);
             setEdges(data.edges);
             setTitle(data.title);
@@ -98,7 +98,7 @@ export default function FlowChart() {
     const nodebarItems = [
         { title: 'Trigger Manually', nodeId: 'manual', type: 'sourceNode', x: 0, y: 0 },
         { title: 'Telegram', nodeId: 'telegram', type: 'targetNode', x: 100, y: 100 },
-        { title: 'Email', nodeId: 'email' },
+        { title: 'Email', nodeId: 'email', type: 'targetNode', x: 50, y: 100 },
         { title: 'AI Agent', nodeId: 'aiAgent', type: 'aiAgentnode', x: 100, y: 0 }
     ]
 
@@ -110,7 +110,7 @@ export default function FlowChart() {
                     id: nodebarItem.nodeId,
                     type: nodebarItem.type,
                     position: { x: nodebarItem.x, y: nodebarItem.y },
-                    data: { id: nodebarItem.nodeId, onDelete: HandleDeleteNode}
+                    data: { id: nodebarItem.nodeId, onDelete: HandleDeleteNode, ...nodebarItem.data }
                 }
             ]
         })
@@ -136,8 +136,8 @@ export default function FlowChart() {
     }
 
     const HandleDeleteNode = (id: string) => {
-        console.log(nodes,'......nodes');
-        
+        console.log(nodes, '......nodes');
+
         setNodes((prev) => {
             const node = prev.filter((node) => node.id !== id)
             return node;
@@ -151,6 +151,11 @@ export default function FlowChart() {
         setEdges((prev) => {
             return prev.filter((edge) => edge.id !== currentEdge.id)
         })
+    }
+
+    const HandleNodesExecution = async () => {
+        const response = await Get(`/api/workflow/execute/${workflowId}`)
+        console.log(response.data);
     }
 
     return (
@@ -183,7 +188,10 @@ export default function FlowChart() {
                     <div key={index} onClick={() => HandleNode(nodebarItem)} className='p-2 pl-4 hover:bg-gray-900 border-b cursor-pointer'>
                         {nodebarItem.title}
                     </div>)}
-                <div onClick={workflowId ? UpdateWorkflow : SubmitWorkflow} className='absolute bottom-0 p-2 cursor-pointer rounded text-center border-t w-full hover:bg-gray-900'>Save</div>
+                <div className='absolute bottom-0  text-center border-t w-full'>
+                    <div onClick={workflowId ? UpdateWorkflow : SubmitWorkflow} className='p-2 cursor-pointer rounded hover:bg-gray-900'>save</div>
+                    <div onClick={HandleNodesExecution} className='p-2 cursor-pointer rounded  hover:bg-gray-900'>Execute</div>
+                </div>
             </div>
         </div>
     );

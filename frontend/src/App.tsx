@@ -5,9 +5,10 @@ import { ThemeProvider } from "@/components/theme-provider"
 import SignUpPage from './components/sign-up'
 import ProtectedRoutes from './components/ProtectedRoutes'
 import Dashboard from './components/Dashboard'
-import Credentials from './components/Credentials'
 import WorkflowList from './components/WorkflowList'
 import FlowChart from './components/FlowChat'
+import Credentials from './components/Credentials'
+import CredentialsForm from './components/CredentialsForm'
 
 function App() {
 
@@ -23,6 +24,8 @@ function App() {
               <Route path='workflow/:id' element={<FlowChart />} />
               <Route path='workflows' element={<WorkflowList />} />
               <Route path='credentials' element={<Credentials />} />
+              <Route path='credential/:id' element={<CredentialsForm />} />
+              <Route path='credential' element={<CredentialsForm />} />
             </Route>
           </Route>
         </Routes>

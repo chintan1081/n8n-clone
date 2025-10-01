@@ -1,6 +1,7 @@
 import { AppDataSource } from "../database/appDataSource"
 import { Router } from "express";
 import { Workflow } from "../entities/workflow.entity";
+import { executeWorkflow } from "../services/executeWorkflow.service";
 
 const router = Router()
 
@@ -65,6 +66,29 @@ router.get('/:id', async (req, res) => {
         return res.status(404).json({ error: "Workflow not found" });
     }
     res.status(200).json(workflow)
+})
+
+router.get('/execute/:id', async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({
+            message: "Missing query params"
+        })
+    }
+
+   try {
+    const executed = await executeWorkflow(id)
+    res.status(200).json({
+        message: "workflow executed"
+    })
+   }
+   catch(error){
+    res.status(404).json({
+        error
+    })
+   }
+    
+
 })
 
 export default router;

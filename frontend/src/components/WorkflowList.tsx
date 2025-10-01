@@ -31,9 +31,9 @@ const WorkflowList = () => {
     return (
         <div>
             <div className="grid grid-cols-6 m-4 mx-8">
-                <p onClick={() => navigate('/workflow')} className="col-span-1 col-start-6 w-full bg-gray-800 hover:bg-gray-900 cursor-pointer p-2 rounded flex items-center gap-2 justify-center ">
+                <div onClick={() => navigate('/workflow')} className="col-span-1 col-start-6 w-full bg-gray-800 hover:bg-gray-900 cursor-pointer p-2 rounded flex items-center gap-2 justify-center ">
                     <p className="text-lg"><FiPlus /></p>
-                    New Workflow</p>
+                    New Workflow</div>
             </div>
             <div className="relative overflow-x-auto mx-8">
                 <table className="text-sm text-left w-full rtl:text-right text-gray-500 dark:text-gray-400">

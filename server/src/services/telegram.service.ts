@@ -3,7 +3,23 @@ import { AppDataSource } from "../database/appDataSource";
 import { Credentials } from "../entities/credentials.entity";
 
 const credentialsRepo = AppDataSource.getRepository(Credentials);
-async function sendTelegramMessage() {
-    const telegram = await credentialsRepo.findOne({ where: { platform: 'telegram'}});
-    axios.get('https://api.telegram.org/bot<TOKEN>/getUpdates')
+export async function telegramService(result?: string) {
+    const telegramCredential: any = await credentialsRepo.findOne({ where: { platform: 'telegram' } });
+    const token = telegramCredential.data.token;
+    const data = await axios.get(`https://api.telegram.org/bot${token}/getUpdates`);
+    const chatId = data.data.result[data.data.result.length - 1].message.chat.id;
+    const message = result ? result : telegramCredential.data.message;
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
+    axios.post(url, {
+        chat_id: chatId,
+        text: message
+    })
+        .then(response => {
+            console.log("Message sent:", response.data);
+        })
+        .catch(error => {
+            console.error("Error sending message:", error.response.data);
+        });
+    return { message: "message send on telegram" }
 }
