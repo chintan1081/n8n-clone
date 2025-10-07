@@ -2,52 +2,71 @@ import { AppDataSource } from "../database/appDataSource"
 import { Router } from "express";
 import { Workflow } from "../entities/workflow.entity";
 import { executeWorkflow } from "../services/executeWorkflow.service";
+import { User } from "../entities/user.entity";
 
 const router = Router()
 
 const workflowRepository = AppDataSource.getRepository(Workflow);
+const userRepository = AppDataSource.getRepository(User);
+
 
 router.post("/", async (req, res) => {
     const { title, nodes, edges } = req.body;
+    const userId = (req as any).userId;
+    const user = await userRepository.findOne({ where: { id: userId } });
+    if (!user)
+        return res.status(411).json({ data: null, error: "user not found" })
     const workflow = workflowRepository.create({
-        title,
+        title: title ? title : `workflow-${Date.now()}`,
         nodes,
-        edges
+        edges,
+        user
     })
 
     await workflowRepository.save(workflow);
     res.status(200).json({
         message: "workflow saved successfully",
-        data: workflow
+        data: workflow,
+        error: null
     })
 })
 
 router.get("/", async (req, res) => {
-    const workflows = await workflowRepository.find();
+    const userId = (req as any).userId;
+
+    const workflows = await workflowRepository.find({ where: { user: { id: userId } } });
     return res.status(200).json(workflows)
 })
 
 router.put("/:id", async (req, res) => {
     const { nodes, edges, title } = req.body;
     const { id } = req.params;
-    const workflow = await workflowRepository.findOne({ where : { id }})
 
-    if(!workflow) {
+    const userId = (req as any).userId;
+
+    const workflow = await workflowRepository.findOne({ where: { id, user: { id: userId } } })
+    if (!workflow) {
         return res.status(404).json({ error: "Workflow not found" })
     }
-    
+
     workflowRepository.merge(workflow, {
         nodes,
         edges,
         title
     })
-    
+
     const updatedWorkflow = await workflowRepository.save(workflow);
-  return res.status(200).json(updatedWorkflow);
+    return res.status(200).json({
+        data: updatedWorkflow,
+        message: "workflow updated successfully!",
+        error: null
+    });
 
 })
 
 router.get('/:id', async (req, res) => {
+    const userId = (req as any).userId;
+
     const { id } = req.params;
     if (!id) {
         return res.status(400).json({
@@ -57,11 +76,10 @@ router.get('/:id', async (req, res) => {
 
     const workflow = await workflowRepository.findOne({
         where: {
-            id: String(id)
+            id: String(id),
+            user: { id: userId }
         }
     })
-    console.log(workflow,'.....');
-    
     if (!workflow) {
         return res.status(404).json({ error: "Workflow not found" });
     }
@@ -69,26 +87,26 @@ router.get('/:id', async (req, res) => {
 })
 
 router.get('/execute/:id', async (req, res) => {
+    const userId = (req as any).userId;
     const { id } = req.params;
+
     if (!id) {
         return res.status(400).json({
             message: "Missing query params"
         })
     }
 
-   try {
-    const executed = await executeWorkflow(id)
-    res.status(200).json({
-        message: "workflow executed"
-    })
-   }
-   catch(error){
-    res.status(404).json({
-        error
-    })
-   }
-    
-
+    try {
+        const executed = await executeWorkflow(id, userId)
+        res.status(200).json({
+            message: "workflow executed"
+        })
+    }
+    catch (error) {
+        res.status(404).json({
+            error
+        })
+    }
 })
 
 export default router;

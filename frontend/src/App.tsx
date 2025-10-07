@@ -9,12 +9,14 @@ import WorkflowList from './components/WorkflowList'
 import FlowChart from './components/FlowChat'
 import Credentials from './components/Credentials'
 import CredentialsForm from './components/CredentialsForm'
+import { ToastContainer } from 'react-toastify'
 
 function App() {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <BrowserRouter>
+      <ToastContainer theme="dark" />
         <Routes>
           <Route path="/signin" element={<SignInPage />} />
           <Route path="/signup" element={<SignUpPage />} />

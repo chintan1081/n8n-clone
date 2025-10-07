@@ -30,13 +30,11 @@ const Dashboard = () => {
         setCurrentTitle={setCurrentTitle}
       />
 
-      {/* Right side */}
       <div className="flex flex-col h-full">
         <div className="border-b text-2xl font-semibold p-4">
           {currentTitle}
         </div>
 
-        {/* Only Outlet scrolls */}
         <div className="flex-1 overflow-y-auto">
           <Outlet />
         </div>

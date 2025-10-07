@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { User } from "./user.entity";
+import { Webhook } from "./webhook.entity";
 
 @Entity({ schema: "core", name: "workflow"})
 export class Workflow {
@@ -20,6 +21,10 @@ export class Workflow {
 
     @ManyToOne(() => User, (user) => user.workflow, { onDelete: 'CASCADE'})
     user: User
+
+    @OneToOne(() => Webhook, (webhook) => webhook.workflow, { onDelete: 'CASCADE'})
+    @JoinColumn()
+    webhook: Webhook
 
     @CreateDateColumn({ type: "timestamp" })
     createdAt: Date

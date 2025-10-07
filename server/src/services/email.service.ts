@@ -4,11 +4,9 @@ import { Credentials } from "../entities/credentials.entity";
 import { Resend } from "resend";
 
 const credentialsRepo = AppDataSource.getRepository(Credentials);
-export async function emailService(result?: string) {
-    const emailCred: any = await credentialsRepo.findOne({ where: { platform: 'email' } });
+export async function emailService(userId: string, result?: string) {
+    const emailCred: any = await credentialsRepo.findOne({ where: { platform: 'email', user: { id: userId }}});
     const apiKey = emailCred.data.apiKey;
-    console.log(emailCred.data,'...emailCred.data');
-    
     const resend = new Resend(apiKey);
     try {
         const response = await resend.emails.send({
@@ -19,6 +17,8 @@ export async function emailService(result?: string) {
         });
 
         console.log("Email sent successfully:", response);
+        if(!response.data && response.error)
+            throw new Error(response.error.message)
     } catch (error) {
         console.error("Error sending email:", error);
     }

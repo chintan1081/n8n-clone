@@ -8,19 +8,18 @@ import AiAgentNode from './nodes/AiAgentNode';
 import { FaRobot } from 'react-icons/fa';
 import { Get, Post, Put } from '@/assets/axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import ToolsNode from './nodes/toolsNode';
+import LlmNode from './nodes/llmNode';
+import { toast } from 'react-toastify';
+import WebhookForm from './WebhookForm';
 
 function CustomNode({ data }: any) {
     return (
         <>
-            <div className='p-4 bg-zinc-900 text-white border rounded flex gap-2 items-center'>
+            <div className='p-4 rounded-full bg-zinc-900 text-white border flex gap-2 items-center'>
                 <div className='text-lg'><FaRobot /></div>
-                <div className='text-sm'>AI Agent</div>
             </div>
-            <Handle type="target" position={Position.Left} />
-            <Handle type="source" position={Position.Right} />
-            <Handle type="source" position={Position.Bottom} style={{ left: '20%' }} />
-            <Handle type="source" position={Position.Bottom} style={{ left: '30%' }} />
-            <Handle type="source" position={Position.Bottom} style={{ left: '80%' }} />
+            <Handle type="target" position={Position.Top} />
         </>
 
     );
@@ -31,6 +30,8 @@ const nodeTypes = {
     targetNode: TargetNode,
     aiAgentnode: AiAgentNode,
     custom: CustomNode,
+    toolsNode: ToolsNode,
+    llmNode: LlmNode
 };
 
 const initialNodes = [
@@ -55,9 +56,13 @@ const initialNodes = [
 export default function FlowChart() {
     const { id: workflowId } = useParams();
     const navigate = useNavigate();
-    const [nodes, setNodes] = useState([]);
+    const [nodes, setNodes] = useState<any>([]);
     const [edges, setEdges] = useState([]);
     const [title, setTitle] = useState("");
+    const [isWebhookOpen, setIsWebhookOpen] = useState(false);
+    const [isCronOpen, setIsCronOpen] = useState(false);
+    const [isCredentialsOpen, setIsCredentialsOpen] = useState(false);
+
 
     useEffect(() => {
         Get(`/api/workflow/${workflowId}`).then((response) => {
@@ -97,47 +102,86 @@ export default function FlowChart() {
     const [nodebar, setNodebar] = useState(false)
     const nodebarItems = [
         { title: 'Trigger Manually', nodeId: 'manual', type: 'sourceNode', x: 0, y: 0 },
+        { title: 'Webhook', nodeId: 'webhook', type: 'sourceNode', x: 0, y: 0 },
+        { title: 'Cron', nodeId: 'cron', type: 'sourceNode', x: 0, y: 0 },
         { title: 'Telegram', nodeId: 'telegram', type: 'targetNode', x: 100, y: 100 },
         { title: 'Email', nodeId: 'email', type: 'targetNode', x: 50, y: 100 },
-        { title: 'AI Agent', nodeId: 'aiAgent', type: 'aiAgentnode', x: 100, y: 0 }
+        { title: 'AI Agent', nodeId: 'aiAgent', type: 'aiAgentnode', x: 100, y: 0 },
+        { title: 'Gemini Ai', nodeId: 'gemini', type: 'llmNode', x: 150, y: 0 },
+        { title: 'Multiply Tool', nodeId: 'multiply', type: 'toolsNode', x: 150, y: 50 },
+        { title: 'Addition Tool', nodeId: 'sum', type: 'toolsNode', x: 150, y: 100 },
+
     ]
 
     const HandleNode = (nodebarItem: any) => {
-        setNodes((prev: any) => {
-            return [
-                ...prev,
-                {
-                    id: nodebarItem.nodeId,
-                    type: nodebarItem.type,
-                    position: { x: nodebarItem.x, y: nodebarItem.y },
-                    data: { id: nodebarItem.nodeId, onDelete: HandleDeleteNode, ...nodebarItem.data }
-                }
-            ]
-        })
+        if(nodebarItem.nodeId === "manual"){
+
+        }
+        else if(nodebarItem.nodeId === "cron"){
+            setIsCronOpen(true);
+        }
+        else if(nodebarItem.nodeId === "webhook"){
+            setIsWebhookOpen(true);
+        }else{
+            setIsCredentialsOpen(true);
+        }
+
+        if (nodebarItem.type === "sourceNode") {
+            const node = nodes.filter((node) => node.type !== "sourceNode")
+            setNodes([...node, {
+                id: nodebarItem.nodeId,
+                type: nodebarItem.type,
+                position: { x: nodebarItem.x, y: nodebarItem.y },
+                data: { id: nodebarItem.nodeId, onDelete: HandleDeleteNode, ...nodebarItem.data }
+            }])
+        }
+        else {
+            setNodes((prev: any) => {
+                return [
+                    ...prev,
+                    {
+                        id: nodebarItem.nodeId,
+                        type: nodebarItem.type,
+                        position: { x: nodebarItem.x, y: nodebarItem.y },
+                        data: { id: nodebarItem.nodeId, onDelete: HandleDeleteNode, ...nodebarItem.data }
+                    }
+                ]
+            });
+        }
     }
 
     const SubmitWorkflow = async () => {
+        if (!title) {
+            toast.error("Title required for workflow!");
+            return
+        }
         const response = await Post("/api/workflow", {
             nodes,
             edges,
             title
         });
         navigate(`${location.pathname}/${response.data.data.id}`);
+        toast.success(response.data.message)
     }
 
     const UpdateWorkflow = async () => {
+        if (!title) {
+            toast.error("Title required for workflow!");
+            return
+        }
         const response = await Put(`/api/workflow/${workflowId}`, {
             nodes,
             edges,
             title
         })
         console.log(response.data);
+        toast.success(response.data.message)
         navigate(location.pathname);
     }
 
-    const HandleDeleteNode = (id: string) => {
-        console.log(nodes, '......nodes');
 
+
+    const HandleDeleteNode = (id: string) => {
         setNodes((prev) => {
             const node = prev.filter((node) => node.id !== id)
             return node;
@@ -158,8 +202,16 @@ export default function FlowChart() {
         console.log(response.data);
     }
 
+    // const HandleNodeClick = (currentNode: any) => {
+    //     if (currentNode.id === 'webhook') {
+    //         const ncode = nodes.find((node: any) => currentNode.id === node.id);
+    //         console.log(ncode, nodes, '.................ncode');
+
+    //     }
+    // }
+
     return (
-        <div className='grid grid-cols-4 text-black col-span-3 bg-zinc-900 h-full w-full'>
+        <div className='grid grid-cols-4 text-black col-span-3 bg-zinc-900 h-full w-full relative'>
             <div className='absolute bg-black text-white p-2 z-1 rounded'>
                 <label className="text-sm mr-2">Title:</label>
                 <input onChange={(e) => setTitle(e.target.value)} defaultValue={title} className='border-0 outline-none border-b w-24' placeholder="enter title" type="text" />
@@ -193,6 +245,11 @@ export default function FlowChart() {
                     <div onClick={HandleNodesExecution} className='p-2 cursor-pointer rounded  hover:bg-gray-900'>Execute</div>
                 </div>
             </div>
+            {(isWebhookOpen || isCredentialsOpen || isCronOpen) && <div className='z-1 absolute w-full bg-zinc-900/50 h-full'>
+                <div className='max-w-3xl mx-auto'>
+                    {isWebhookOpen && <WebhookForm setIsWebhookOpen={setIsWebhookOpen} />}
+                </div>
+            </div>}
         </div>
     );
 }

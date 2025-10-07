@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { Get, Post, Put } from '@/assets/axios'
@@ -12,7 +11,7 @@ export default function CredentialsForm() {
     const { id: credentialsId } = useParams();
     const [title, setTitle] = useState("");
     const [platform, setPlatform] = useState("");
-    const [data, setData] = useState("");
+    const [data, setData] = useState<any>({});
     const navigate = useNavigate()
 
 
@@ -20,23 +19,23 @@ export default function CredentialsForm() {
     useEffect(() => {
         if (!credentialsId) {
             if (platform === 'telegram')
-                setData(JSON.stringify({
+                setData({
                     token: "your token",
                     message: "your message"
-                }))
+                })
             else if (platform === 'aiAgent')
-                setData(JSON.stringify({
+                setData({
                     apiKey: "your apikey",
                     prompt: "your prompt"
-                }))
+                })
             else if (platform === 'email')
-                setData(JSON.stringify({
+                setData({
                     apiKey: "enter apikey of Resend",
                     to: "send to",
                     from: "from whom",
                     subject: "enter subject",
                     text: "enter text"
-                }))
+                })
         }
     }, [platform])
 
@@ -48,7 +47,6 @@ export default function CredentialsForm() {
             data: JSON.parse(data)
         })
         navigate('/credentials');
-
         console.log(response.data);
     }
 
@@ -57,7 +55,7 @@ export default function CredentialsForm() {
         const response = await Put(`/api/credential/${credentialsId}`, {
             title,
             platform,
-            data: JSON.parse(data)
+            data
         })
 
         navigate('/credentials');
@@ -67,10 +65,9 @@ export default function CredentialsForm() {
         if (credentialsId) {
             Get(`/api/credential/${credentialsId}`).then((response) => {
                 const data = response.data;
-                console.log(data.nodes, '.nid..............nodedata');
                 setTitle(data.title);
                 setPlatform(data.platform);
-                setData(JSON.stringify(data.data));
+                setData(data.data);
             }).catch((error) => {
                 console.log(error);
             })
@@ -110,15 +107,23 @@ export default function CredentialsForm() {
                             </Select>
                         </div>
 
-                        <div>
-                            <Label htmlFor="data">Data</Label>
-                            <Textarea
-                                id="data"
-                                rows={3}
-                                onChange={(e) => setData(e.target.value)}
-                                value={data}
-                            />
-                        </div>
+                        {data && Object.keys(data).map(key => (
+                            <div key={key}>
+                                <Label htmlFor={key}>{key}</Label>
+                                <Input
+                                    onChange={(e) => setData((prev: any) => ({
+                                        ...prev,
+                                        [key]: e.target.value
+                                    }))
+                                    }
+                                    type="text"
+                                    id={key}
+                                    required
+                                    placeholder={data[key]}
+                                    value={data[key]}
+                                />
+                            </div>
+                        ))}
                         <Button className='cursor-pointer' type='submit'>Submit</Button>
                     </form>
                 </Card>

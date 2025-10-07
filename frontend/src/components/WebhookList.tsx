@@ -1,4 +1,4 @@
-import { Get, Post } from "@/assets/axios"
+import { Get } from "@/assets/axios"
 import { useEffect, useState } from "react"
 import { FiPlus } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
@@ -6,43 +6,32 @@ import { useNavigate } from "react-router-dom"
 type AllWorkflowsProp = {
     id: string,
     title: string,
-    nodes: object[],
-    edges: object[],
+    platform: string,
     createdAt: string
 }
 
-const WorkflowList = () => {
+const Credentials = () => {
     const navigate = useNavigate()
-    const [allFlowchat, setAllFlowchat] = useState<AllWorkflowsProp[]>([]);
+    const [allCredentials, setAllCredentials] = useState<AllWorkflowsProp[]>([]);
 
     useEffect(() => {
-        Get('/api/workflow').then((response) => {
-            setAllFlowchat(response.data)
+        Get('/api/credential').then((response) => {
+            setAllCredentials(response.data)
         }).catch((error) => {
             console.log(error);
-
         })
     }, [])
 
-    const HandleCurrentWorkflow = (flowchatId: string) => {
-        navigate(`/workflow/${flowchatId}`)
-    }
-
-    const HandleNewWorkflow = async () => {
-        const response = await Post("/api/workflow", {
-            title: '',
-            nodes: [],
-            edges: []
-        });
-        navigate(`/workflow/${response.data.data.id}`)
+    const HandleCurrentCredentials = (credentialsId: string) => {
+        navigate(`/credential/${credentialsId}`)
     }
 
     return (
         <div>
             <div className="grid grid-cols-6 m-4 mx-8">
-                <div onClick={() => HandleNewWorkflow()} className="col-span-1 col-start-6 w-full bg-gray-800 hover:bg-gray-900 cursor-pointer p-2 rounded flex items-center gap-2 justify-center ">
+                <div onClick={() => navigate('/credential')} className="col-span-1 col-start-6 w-full bg-gray-800 hover:bg-gray-900 cursor-pointer p-2 rounded flex items-center gap-2 justify-center ">
                     <p className="text-lg"><FiPlus /></p>
-                    New Workflow</div>
+                    New Credentials</div>
             </div>
             <div className="relative overflow-x-auto mx-8">
                 <table className="text-sm text-left w-full rtl:text-right text-gray-500 dark:text-gray-400">
@@ -52,10 +41,7 @@ const WorkflowList = () => {
                                 Title
                             </th>
                             <th scope="col" className="px-6 py-3">
-                                Nodes
-                            </th>
-                            <th scope="col" className="px-6 py-3">
-                                Edges
+                                Platform
                             </th>
                             <th scope="col" className="px-6 py-3">
                                 CreateAt
@@ -63,19 +49,17 @@ const WorkflowList = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {allFlowchat.map((flowchat) =>
-                            <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                                <th scope="row" onClick={() => HandleCurrentWorkflow(flowchat.id)} className="px-6 py-4 cursor-pointer hover:underline font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                    {flowchat.title}
+                        {allCredentials.map((credential, index) =>
+                            <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
+                                <th scope="row" onClick={() => HandleCurrentCredentials(credential.id)} className="px-6 py-4 cursor-pointer hover:underline font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                    {credential.title}
                                 </th>
                                 <td className="px-6 py-4">
-                                    {flowchat.nodes.length}
+                                    {credential.platform}
                                 </td>
+
                                 <td className="px-6 py-4">
-                                    {flowchat.edges.length}
-                                </td>
-                                <td className="px-6 py-4">
-                                    {new Date(flowchat.createdAt).toLocaleDateString("en-GB", {
+                                    {new Date(credential.createdAt).toLocaleDateString("en-GB", {
                                         day: "2-digit",
                                         month: "2-digit",
                                         year: "numeric",
@@ -89,4 +73,5 @@ const WorkflowList = () => {
     )
 }
 
-export default WorkflowList
+export default Credentials;
+

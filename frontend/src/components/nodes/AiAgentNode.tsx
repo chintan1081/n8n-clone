@@ -1,8 +1,16 @@
-import { Handle, Position } from "@xyflow/react"
+import { Handle, Position, useNodeConnections } from "@xyflow/react"
 import { FaRobot } from "react-icons/fa"
 import { FiTrash2 } from "react-icons/fi"
 
 const AiAgentNode = ({ data }: any) => {
+        const connectionsSource = useNodeConnections({
+            handleType: "source",
+        });
+
+        const connectionsTarget = useNodeConnections({
+            handleType: "target",
+        });
+        
 
   return (
     <div className="relative group">
@@ -13,11 +21,25 @@ const AiAgentNode = ({ data }: any) => {
         <div className='text-lg'><FaRobot /></div>
         <div className='text-sm'>AI Agent</div>
       </div>
-      <Handle type="target" position={Position.Left} id="target-1" />
-      <Handle type="source" position={Position.Right} id="source-right" />
-      <Handle type="source" position={Position.Bottom} id="source-bottom-1" style={{ left: '20%' }} />
-      <Handle type="source" position={Position.Bottom} id="source-bottom-2" style={{ left: '30%' }} />
-      <Handle type="source" position={Position.Bottom} id="source-bottom-3" style={{ left: '80%' }} />
+      <Handle type="target" 
+              position={Position.Left} 
+              id="target-1"
+              isConnectable={connectionsTarget.length < 1}
+      />
+      <Handle type="source"
+              position={Position.Right}
+              id="source-right"
+       />
+      <Handle type="source"
+              position={Position.Bottom}
+              id="source-bottom-1"
+              style={{ left: '20%' }}
+      />
+      {/* <Handle type="source" position={Position.Bottom} id="source-bottom-2" style={{ left: '30%' }} /> */}
+      <Handle type="source"
+              position={Position.Bottom}
+              id="source-bottom-3"
+      />
     </div>
   )
 }

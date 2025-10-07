@@ -31,7 +31,7 @@ export default function SignInPage() {
         );
         if(data.status == 200){
             Cookies.set("token", data.data.token);
-            navigate("/dashboard")
+            navigate("/")
             console.log(data);
         }
     }

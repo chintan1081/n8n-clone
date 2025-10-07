@@ -1,9 +1,13 @@
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, useNodeConnections } from '@xyflow/react';
 import { FiTrash2 } from 'react-icons/fi';
 import { TbBrandTelegram } from 'react-icons/tb';
 import { MdOutlineMail } from "react-icons/md";
 
 const TargetNode = ({ data }: any) => {
+    const connectionsTarget = useNodeConnections({
+                handleType: "target",
+            });
+
     const logo: any = {
         telegram: <TbBrandTelegram />,
         email: <MdOutlineMail />
@@ -18,7 +22,9 @@ const TargetNode = ({ data }: any) => {
             </div>
             <Handle type="target"
                 position={Position.Left}
-                isConnectableEnd={true} />
+                isConnectableEnd={true}
+              isConnectable={connectionsTarget.length < 1}
+            />
         </div>
     )
 }
