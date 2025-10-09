@@ -1,4 +1,3 @@
-import { LogoIcon } from '@/components/logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -6,10 +5,12 @@ import axios from 'axios'
 import { useState } from 'react'
 import { Link, useNavigate } from "react-router-dom"
 import Cookies from "js-cookie";
+import { toast } from 'react-toastify'
 
 export default function SignInPage() {
     const navigate = useNavigate();
-    const [ signInInput, setSignInInput ] = useState({
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [signInInput, setSignInInput] = useState({
         email: "",
         password: ""
     })
@@ -19,20 +20,28 @@ export default function SignInPage() {
         setSignInInput((prev) => {
             return {
                 ...prev,
-                [event.target.name] : event.target.value
+                [event.target.name]: event.target.value
             }
         })
     }
 
-    const HandleSignIn = async(event: React.FormEvent<HTMLFormElement>) => {
+    const HandleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
-        const data = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/sign-in`, 
-            signInInput, 
-        );
-        if(data.status == 200){
-            Cookies.set("token", data.data.token);
-            navigate("/")
-        }
+        setIsSubmitting(true);
+        try {
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/sign-in`,
+                signInInput,
+            );
+            if (response.data.success) {
+                Cookies.set("token", response.data.data);
+                toast.success(response.data.message);
+                navigate("/");
+            }
+        } catch (error) {
+            toast.error(error.response.data.message)
+        } finally {
+      setIsSubmitting(false);
+    }
     }
     return (
         <section className="flex min-h-screen bg-zinc-50 px-4 py-16 md:py-32 dark:bg-transparent">
@@ -45,9 +54,11 @@ export default function SignInPage() {
                             to="/"
                             aria-label="go home"
                             className="mx-auto block w-fit">
-                            <LogoIcon />
+                            <div className="p-4 flex gap-4 items-center border-b font-semibold">
+                                <div className="bg-gradient-to-r rounded from-violet-500 to-blue-800 p-1">n8n</div>
+                            </div>
                         </Link>
-                        <h1 className="mb-1 mt-4 text-xl font-semibold">Sign In to Tailark</h1>
+                        <h1 className="mb-1 mt-4 text-xl font-semibold">Sign In to N8n</h1>
                         <p className="text-sm">Welcome back! Sign in to continue</p>
                     </div>
 
@@ -96,7 +107,9 @@ export default function SignInPage() {
                             />
                         </div>
 
-                        <Button type='submit' className="w-full">Sign In</Button>
+                        <Button disabled={isSubmitting} type='submit' className="w-full cursor-pointer">
+                            {isSubmitting ? 'Signing In...' : 'Sign In'}
+                            </Button>
                     </div>
 
                     <div className="my-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
@@ -107,6 +120,7 @@ export default function SignInPage() {
 
                     <div className="grid grid-cols-2 gap-3">
                         <Button
+                            disabled
                             type="button"
                             variant="outline">
                             <svg
@@ -130,6 +144,7 @@ export default function SignInPage() {
                             <span>Google</span>
                         </Button>
                         <Button
+                        disabled
                             type="button"
                             variant="outline">
                             <svg

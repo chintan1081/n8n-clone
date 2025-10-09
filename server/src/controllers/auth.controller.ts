@@ -8,10 +8,12 @@ const router = Router();
 
 const userRepository = AppDataSource.getRepository(User);
 
-router.post("/sign-up", async(req, res) => {
+router.post("/sign-up", async (req, res) => {
     const { data, success } = signUpSchema.safeParse(req.body);
-    if(!success && !data){
+    if (!success && !data) {
         res.status(411).json({
+            success: false,
+            data: null,
             message: "Incorrect input parameters"
         })
         return
@@ -22,11 +24,13 @@ router.post("/sign-up", async(req, res) => {
         }
     })
 
-    if(existingUser){
+    if (existingUser) {
         res.status(409)
-        .json({
-            message: "Account already exists"
-        })
+            .json({
+                success: false,
+                data: null,
+                message: "Account already exists"
+            })
         return
     }
 
@@ -39,33 +43,42 @@ router.post("/sign-up", async(req, res) => {
     })
     await userRepository.save(user);
     res.status(200)
-    .json({
-        message: "User saved successfully"
-    })
+        .json({
+            success: true,
+            data: null,
+            message: "User saved successfully"
+        })
 })
 
-router.post("/sign-in", async(req, res) => {
+router.post("/sign-in", async (req, res) => {
     const { data, success } = signInSchema.safeParse(req.body);
-    if(!success && !data){
+    if (!success && !data) {
         res.status(411).json({
+            success: false,
+            data: null,
             message: "Incorrect input parameters"
         })
         return
     }
 
-    const user = await userRepository.findOne({ 
-        where: { 
+    const user = await userRepository.findOne({
+        where: {
             email: data.email
-        }})
-    if(!user){
+        }
+    })
+    if (!user) {
         res.status(411).json({
+            success: false,
+            data: null,
             message: "user doesn't exist"
         })
         return;
     }
     const isPasswordVaild = await bcrypt.compare(data.password, user?.password);
-    if(!isPasswordVaild){
+    if (!isPasswordVaild) {
         res.status(401).json({
+            success: false,
+            data: null,
             message: "email or password are incorrect"
         })
     }
@@ -75,8 +88,10 @@ router.post("/sign-in", async(req, res) => {
     }, process.env.AUTH_JWT_SECRET!);
 
     res.status(200).json({
+        success: true,
+        data: token,
         message: "Sign in successfully",
-        token
+
     })
 })
 

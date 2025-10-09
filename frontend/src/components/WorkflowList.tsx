@@ -19,7 +19,7 @@ const WorkflowList = () => {
 
     useEffect(() => {
         Get('/api/workflow').then((response) => {
-            setAllFlowchat(response.data)
+            setAllFlowchat(response.data);
         }).catch((error) => {
         })
     }, [])
@@ -42,7 +42,19 @@ const WorkflowList = () => {
             enable: !enable
         })
         toast.success(response.data.message);
-        window.location.reload();
+
+        Get('/api/workflow').then((response) => {
+            setAllFlowchat(response.data)
+        }).catch((error) => {
+        })
+    }
+
+    const HandleNodesExecution = async (workflowId: string) => {
+        try {
+            const response = await Get(`/api/workflow/execute/${workflowId}`);
+        } catch (error) {
+            toast.error(error.response.data.message);
+        }
     }
 
     return (
@@ -67,6 +79,9 @@ const WorkflowList = () => {
                             </th>
                             <th scope="col" className="px-6 py-3">
                                 Enable
+                            </th>
+                            <th scope="col" className="px-8 py-3">
+                                Execute
                             </th>
                             <th scope="col" className="px-6 py-3">
                                 CreateAt
@@ -93,6 +108,13 @@ const WorkflowList = () => {
                                         <div className={`w-2 p-2 rounded-full ${flowchat.enable ? 'bg-orange-600' : 'bg-gray-600'}`} />
                                         <div className={`w-2 p-2 rounded-full ${'bg-gray-300'}`} />
                                     </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <button disabled={flowchat.webhook !== null && flowchat.cron !== null} className={`${flowchat.webhook == null && flowchat.cron == null && 'hover:bg-gray-900 cursor-auto'} rounded p-2 cursor-pointer`}>
+                                        {flowchat.webhook == null && flowchat.cron == null && 'Execute'}
+                                        {flowchat.webhook !== null && flowchat.cron == null && 'Webhook'}
+                                        {flowchat.webhook == null && flowchat.cron !== null && 'Cron'}
+                                        </button>
                                 </td>
                                 <td className="px-6 py-4">
                                     {new Date(flowchat.createdAt).toLocaleDateString("en-GB", {

@@ -1,35 +1,47 @@
-import { LogoIcon } from '@/components/logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from 'react-toastify';
+
 
 
 export default function SignUpPage() {
-    const [ signUpInput, setSignUpInput ] = useState({
+    const navigate = useNavigate();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [signUpInput, setSignUpInput] = useState({
         firstName: '',
         lastName: '',
         email: '',
         password: ''
     })
 
-    const HandleSignUpInput = (event : React.ChangeEvent<HTMLInputElement>) => {
+    const HandleSignUpInput = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSignUpInput((prev) => {
             return {
                 ...prev,
-                [event.target.name] : event.target.value
+                [event.target.name]: event.target.value
             }
         })
     }
 
     const HandleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const data = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/sign-up`, signUpInput);
-        if(data.status === 200){
+        setIsSubmitting(true);
+        try {
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/sign-up`, signUpInput);
+            if (response.data.success) {
+                toast.success(response.data.message);
+                navigate('/signin');
+            }
+        } catch (error) {
+            toast.error(error.response.data.message)
+        } finally {
+            setIsSubmitting(false);
         }
-        
+
     }
     return (
         <section className="flex min-h-screen bg-zinc-50 px-4 py-16 md:py-32 dark:bg-transparent">
@@ -41,14 +53,17 @@ export default function SignUpPage() {
                         <Link
                             to="/"
                             aria-label="go home">
-                            <LogoIcon />
+                            <div className="p-4 flex gap-4 items-center border-b font-semibold">
+                                <div className="bg-gradient-to-r rounded from-violet-500 to-blue-800 p-1">n8n</div>
+                            </div>
                         </Link>
-                        <h1 className="mb-1 mt-4 text-xl font-semibold">Create a Tailark Account</h1>
+                        <h1 className="mb-1 mt-4 text-xl font-semibold">Create a N8n Account</h1>
                         <p className="text-sm">Welcome! Create an account to get started</p>
                     </div>
 
                     <div className="mt-6 grid grid-cols-2 gap-3">
                         <Button
+                            disabled
                             type="button"
                             variant="outline">
                             <svg
@@ -72,6 +87,7 @@ export default function SignUpPage() {
                             <span>Google</span>
                         </Button>
                         <Button
+                            disabled
                             type="button"
                             variant="outline">
                             <svg
@@ -162,7 +178,9 @@ export default function SignUpPage() {
                             />
                         </div>
 
-                        <Button type='submit' className="w-full">Continue</Button>
+                        <Button disabled={isSubmitting} type='submit' className="w-full cursor-pointer bg-white">
+                            {isSubmitting ? 'Signing Up...' : 'Sign Up'}
+                        </Button>
                     </div>
                 </div>
 

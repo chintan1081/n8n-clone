@@ -39,6 +39,7 @@ router.get("/", async (req, res) => {
                 id: userId
             }
         },
+        relations: ["cron", "webhook"],
         order: { createdAt: 'DESC' }
     });
     return res.status(200).json(workflows)
@@ -99,7 +100,11 @@ router.get('/execute/:id', async (req, res) => {
                 message: "Missing query params"
             })
         }
-        const workflow = await workflowRepository.findOne({ where: { id } });
+        const workflow = await workflowRepository.findOne({
+            where: {
+                id
+            },
+        });
         if (!workflow) {
             throw new Error("Worflow doesn't exist")
         }

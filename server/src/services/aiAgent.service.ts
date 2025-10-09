@@ -59,7 +59,7 @@ export async function aiAgentService(userId: string, llmNode: any, tools: any) {
     const finalTools = tools.map((tool: any) => toolsFunction[tool])
     const geminiCredential: any = await credentialsRepo.findOne({ where: { platform: 'aiAgent', user: { id: userId } } });
     if (!geminiCredential) {
-        throw new Error("Provide Email Credentials")
+        throw new Error("Provide Gemini Credentials")
     }
     const apiKey = geminiCredential.data.apiKey;
     const prompt = geminiCredential.data.prompt;

@@ -6,7 +6,7 @@ const credentialsRepo = AppDataSource.getRepository(Credentials);
 export async function telegramService(userId: string, result?: string) {
     const telegramCredential: any = await credentialsRepo.findOne({ where: { platform: 'telegram', user: { id: userId } } });
     if (!telegramCredential) {
-        throw new Error("Provide Email Credentials")
+        throw new Error("Provide Telegram Credentials")
     }
     const token = telegramCredential.data.token;
     const data = await axios.get(`https://api.telegram.org/bot${token}/getUpdates`);
