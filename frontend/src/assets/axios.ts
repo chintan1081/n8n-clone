@@ -37,3 +37,15 @@ export const Put = async (url: string, data: any, header?: any) => {
         }
     )
 }
+
+export const Delete = async (url: string, header?: any) => {
+    return await axios.delete(
+        `${import.meta.env.VITE_BACKEND_URL}${url}`,
+        {
+            headers: {
+                "Authorization": `Bearer ${Cookies.get("token")}`,
+                ...header
+            }
+        }
+    )
+}

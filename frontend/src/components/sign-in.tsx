@@ -32,7 +32,6 @@ export default function SignInPage() {
         if(data.status == 200){
             Cookies.set("token", data.data.token);
             navigate("/")
-            console.log(data);
         }
     }
     return (

@@ -23,7 +23,7 @@ export class User {
     isVerified: boolean
 
     @OneToMany(() => Workflow, (workflow) => workflow.user)
-    workflow: Workflow[]
+    workflows: Workflow[]
 
     @OneToMany(() => Credentials, (credentials) => credentials.user)
     credentials: Credentials[]

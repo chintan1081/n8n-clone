@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar"
 import { FcFlowChart } from "react-icons/fc";
 import { TbPasswordFingerprint } from "react-icons/tb";
 import { Outlet } from "react-router-dom";
+import { MdAlarmOn, MdOutlineWebhook } from "react-icons/md";
 
 export type SideElementsProp = {
   title: string,
@@ -14,6 +15,8 @@ const Dashboard = () => {
   const sideElements: SideElementsProp[] = [
     { title: "Flow Chart", path: '/workflows', logo: <FcFlowChart /> },
     { title: "Credentials", path: '/credentials', logo: <TbPasswordFingerprint /> },
+    { title: "Webhooks", path: '/webhooks', logo: <MdOutlineWebhook /> },
+    { title: "Crons", path: '/crons', logo: <MdAlarmOn /> },
   ]
   const [currentTitle, setCurrentTitle] = useState(() => {
     const found = sideElements.find(

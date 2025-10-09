@@ -76,10 +76,9 @@ router.get('/:id', async (req, res) => {
         where: {
             id: String(id),
             user: { id: userId }
-        }
+        },
+        order: { createdAt: 'DESC' }
     })
-    console.log(credential, '.....');
-
     if (!credential) {
         return res.status(404).json({ error: "Workflow not found" });
     }

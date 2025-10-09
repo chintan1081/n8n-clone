@@ -2,6 +2,7 @@ import { Get } from "@/assets/axios"
 import { useEffect, useState } from "react"
 import { FiPlus } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
+import { toast } from "react-toastify"
 
 type AllWorkflowsProp = {
     id: string,
@@ -18,7 +19,7 @@ const Credentials = () => {
         Get('/api/credential').then((response) => {
             setAllCredentials(response.data)
         }).catch((error) => {
-            console.log(error);
+            toast.error(error)
         })
     }, [])
 

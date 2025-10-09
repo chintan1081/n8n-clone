@@ -10,6 +10,8 @@ import FlowChart from './components/FlowChat'
 import Credentials from './components/Credentials'
 import CredentialsForm from './components/CredentialsForm'
 import { ToastContainer } from 'react-toastify'
+import WebhookList from './components/WebhookList'
+import CronList from './components/CronList'
 
 function App() {
 
@@ -22,12 +24,13 @@ function App() {
           <Route path="/signup" element={<SignUpPage />} />
           <Route element={<ProtectedRoutes />}>
             <Route path="/" element={<Dashboard />} >
-              <Route path='workflow' element={<FlowChart />} />
               <Route path='workflow/:id' element={<FlowChart />} />
               <Route path='workflows' element={<WorkflowList />} />
               <Route path='credentials' element={<Credentials />} />
               <Route path='credential/:id' element={<CredentialsForm />} />
               <Route path='credential' element={<CredentialsForm />} />
+              <Route path='webhooks' element={<WebhookList />} />
+              <Route path='crons' element={<CronList />} />
             </Route>
           </Route>
         </Routes>

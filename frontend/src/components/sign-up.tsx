@@ -28,7 +28,6 @@ export default function SignUpPage() {
         event.preventDefault();
         const data = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/sign-up`, signUpInput);
         if(data.status === 200){
-            console.log(data);
         }
         
     }

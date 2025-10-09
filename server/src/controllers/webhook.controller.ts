@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken";
 import { error } from "console";
 import { executeWorkflow } from "../services/executeWorkflow.service";
 import AuthMiddleware from "../middleware/auth.middleware";
+import { In } from "typeorm";
+import { success } from "zod";
 
 const router = Router();
 
@@ -13,7 +15,6 @@ const webhookRepository = AppDataSource.getRepository(Webhook);
 const workflowRepository = AppDataSource.getRepository(Workflow);
 
 router.post("/", AuthMiddleware, async (req, res) => {
-    const userId = (req as any).userId;
     const { title, method, header, secret, workflowId } = req.body;
     const workflow = await workflowRepository.findOne({ where: { id: workflowId } });
     if (!workflow)
@@ -27,20 +28,20 @@ router.post("/", AuthMiddleware, async (req, res) => {
     if (header !== "none") {
         token = jwt.sign({
             workflowId
-        }, secret,)
+        }, secret, { expiresIn: '100y' })
     }
 
     const webhook = webhookRepository.create({
         title,
         method,
-        header: token,
+        header: token ? token : header,
         secret,
         workflow
     })
 
     await webhookRepository.save(webhook);
-    webhookRepository.merge(webhook,{
-     path: `/webhook/${webhook.id}` 
+    webhookRepository.merge(webhook, {
+        path: `/webhook/${webhook.id}`
     });
     await webhookRepository.save(webhook);
     res.status(200).json({
@@ -51,7 +52,7 @@ router.post("/", AuthMiddleware, async (req, res) => {
 
 })
 
-router.get("/", AuthMiddleware, async(req, res) => {
+router.get("/", AuthMiddleware, async (req, res) => {
     try {
         const userId = (req as any).userId;
 
@@ -65,15 +66,11 @@ router.get("/", AuthMiddleware, async(req, res) => {
 
         const webhooks = await webhookRepository.find({
             where: {
-                workflow: {
-                    user: {
-                        id: userId,
-                    },
-                },
+                workflow: { user: { id: userId } }
             },
             relations: ["workflow", "workflow.user"],
         });
-
+        
         return res.status(200).json({
             message: "Webhooks fetched successfully",
             data: webhooks,
@@ -81,7 +78,6 @@ router.get("/", AuthMiddleware, async(req, res) => {
         });
 
     } catch (err) {
-        console.error("Error fetching webhooks:", err);
         return res.status(500).json({
             message: "Internal server error",
             error: err instanceof Error ? err.message : err,
@@ -92,12 +88,28 @@ router.get("/", AuthMiddleware, async(req, res) => {
 
 router.get("/:webhookId", async (req, res) => {
     const { webhookId } = req.params;
-    const webhook = await webhookRepository.findOne({ where: { id: webhookId } });
+    const webhook = await webhookRepository.findOne({
+        where: {
+            id: webhookId
+        },
+        relations: ["workflow", "workflow.user"]
+    });
+
+    if(!webhook?.workflow.enable){
+        throw new Error("Workflow is not enable yet")
+    }
+
     if (!webhook) {
         return res.status(404).json({
             error: "webhook doesn't found"
         })
     }
+      if (webhook.method !== "get") {
+        return res.status(404).json({
+            error: "provide correct method"
+        })
+    }
+
     const workflowId = webhook?.workflow.id
     const userId = webhook?.workflow.user.id;
 
@@ -132,10 +144,20 @@ router.get("/:webhookId", async (req, res) => {
 
 router.post("/:webhookId", async (req, res) => {
     const webhookId = (req as any).webhookId;
-    const webhook = await webhookRepository.findOne({ where: { id: webhookId } });
+    const webhook = await webhookRepository.findOne({
+        where: {
+            id: webhookId
+        },
+        relations: ["workflow", "workflow.user"]
+    });
     if (!webhook) {
         return res.status(404).json({
             error: "webhook doesn't found"
+        })
+    }
+    if (webhook.method !== "post") {
+        return res.status(404).json({
+            error: "provide correct method"
         })
     }
     const workflowId = webhook?.workflow.id;
@@ -166,5 +188,15 @@ router.post("/:webhookId", async (req, res) => {
         })
     }
 });
+
+router.delete('/:workflowId', async(req, res) => {
+    const { workflowId } = req.params;
+    await webhookRepository.delete({ workflow: {id: workflowId }});
+    res.status(200).json({
+        success: true,
+        message: "webhook deleted successfully",
+        data: null
+    })
+})
 
 export default router;

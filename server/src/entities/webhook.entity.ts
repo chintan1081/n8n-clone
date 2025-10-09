@@ -1,5 +1,5 @@
 import { CONNREFUSED } from "dns";
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Workflow } from "./workflow.entity";
 
 @Entity({ schema: "core", name: "webhook" })
@@ -19,9 +19,10 @@ export class Webhook {
     @Column()
     header: string
 
-    @Column()
+    @Column({ nullable: true })
     secret: string
 
-    @OneToOne(() => Workflow, (workflow) => workflow.webhook, { nullable: true})
+    @OneToOne(() => Workflow, (workflow) => workflow.webhook)
+    @JoinColumn()
     workflow: Workflow
 }

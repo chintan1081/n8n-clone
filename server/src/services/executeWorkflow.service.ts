@@ -16,6 +16,7 @@ export async function executeWorkflow(workflowId: string, userId: string) {
     if (!workflow) throw Error("error finding workflow")
     let result: any = null;
     let nodes: any = workflow?.nodes;
+    let edges: any = workflow?.edges;
     const tools = [];
     let exectionSeqs: any = [];
     let llmNode;
@@ -28,19 +29,30 @@ export async function executeWorkflow(workflowId: string, userId: string) {
             exectionSeqs.push(node.id)
         else if (node.type == 'llmNode')
             llmNode = node.id;
-        else if(node.type === 'targetNode'){
+        else if (node.type === 'targetNode') {
             targetNode.push(node.id);
         }
     }
     exectionSeqs = [...exectionSeqs, ...targetNode]
-    console.log(exectionSeqs, tools, '..........');
+    // const sourceNode = nodes.find((node: any) => node.type === "sourceNode");
+    // const nodess = nodes.map((node: any) => node.id);
+
+    // const removeNodes = [...tools, llmNode];
+    // let newEdges = [];
+    // for(const edge of edges){
+    //     for(const node of nodess){
+            
+    //     }
+    // }
+
+    // console.log(sourceNode,nodes, edges, '..........');
     for (const exectionSeq of exectionSeqs) {
-        if (exectionSeq === 'aiAgent') {
-            result = await aiAgentService(userId, llmNode, tools)
-        } else {
-            const service = services[exectionSeq];
-            await service(userId, result);
-        }
+            if (exectionSeq === 'aiAgent') {
+                result = await aiAgentService(userId, llmNode, tools)
+            } else {
+                const service = services[exectionSeq];
+                await service(userId, result);
+            }
     }
 
 }

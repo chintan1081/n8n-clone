@@ -33,8 +33,14 @@ router.post("/", async (req, res) => {
 
 router.get("/", async (req, res) => {
     const userId = (req as any).userId;
-
-    const workflows = await workflowRepository.find({ where: { user: { id: userId } } });
+    const workflows = await workflowRepository.find({
+        where: {
+            user: {
+                id: userId
+            }
+        },
+        order: { createdAt: 'DESC' }
+    });
     return res.status(200).json(workflows)
 })
 
@@ -50,9 +56,7 @@ router.put("/:id", async (req, res) => {
     }
 
     workflowRepository.merge(workflow, {
-        nodes,
-        edges,
-        title
+        ...req.body
     })
 
     const updatedWorkflow = await workflowRepository.save(workflow);
@@ -89,23 +93,29 @@ router.get('/:id', async (req, res) => {
 router.get('/execute/:id', async (req, res) => {
     const userId = (req as any).userId;
     const { id } = req.params;
-
-    if (!id) {
-        return res.status(400).json({
-            message: "Missing query params"
-        })
-    }
-
     try {
+        if (!id) {
+            return res.status(400).json({
+                message: "Missing query params"
+            })
+        }
+        const workflow = await workflowRepository.findOne({ where: { id } });
+        if (!workflow) {
+            throw new Error("Worflow doesn't exist")
+        }
+        if (!workflow.enable) {
+            throw new Error("Workflow is not enable yet")
+        }
         const executed = await executeWorkflow(id, userId)
         res.status(200).json({
             message: "workflow executed"
         })
     }
-    catch (error) {
-        res.status(404).json({
-            error
-        })
+    catch (error: any) {
+        res.status(500).json({
+            success: false,
+            message: error.message || "Internal server error",
+        });
     }
 })
 

@@ -7,6 +7,8 @@ import CredentialsController from "./controllers/credentials.controller";
 import cors from "cors";
 import AuthMiddleware from "./middleware/auth.middleware";
 import WebhookController from "./controllers/webhook.controller";
+import CronController from "./controllers/cron.controller";
+
 const app = express();
 
 app.use(cors({ origin: "*", credentials: true }))
@@ -18,6 +20,7 @@ app.use('/api/auth', AuthController);
 app.use('/api/workflow', AuthMiddleware, WorkflowController);
 app.use('/api/credential', AuthMiddleware, CredentialsController);
 app.use('/api/webhook', WebhookController);
+app.use('/api/cron', CronController)
 
 
 app.listen(process.env.BACKEND_PORT, () => {

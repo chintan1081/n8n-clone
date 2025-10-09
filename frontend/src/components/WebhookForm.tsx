@@ -6,12 +6,14 @@ import { Card } from '@/components/ui/card'
 import { Get, Post, Put } from '@/assets/axios'
 import { useState } from 'react'
 import { toast } from 'react-toastify'
+import { useParams } from 'react-router-dom'
 
 const WebhookForm = ({ setIsWebhookOpen }: any) => {
     const [title, setTitle] = useState<string>();
     const [method, setMethod] = useState<string>();
     const [header, setHeader] = useState<string>();
     const [secret, setSecret] = useState<string>();
+    const { id: workflowId } = useParams()
 
     const HandleWebhookForm = async (event) => {
         event.preventDefault();
@@ -20,15 +22,14 @@ const WebhookForm = ({ setIsWebhookOpen }: any) => {
                 title,
                 method,
                 header,
-                secret
+                secret,
+                workflowId
             })
             toast.success(response.data.message);
             setIsWebhookOpen(false);
         }catch(error){
             toast.error(error);
         }
-        
-        
     }
 
     return (

@@ -1,19 +1,18 @@
 import { Get } from "@/assets/axios"
 import { useEffect, useState } from "react"
 
-type AllWebhookProp = {
+type AllCronProp = {
     title: string,
-    method: string,
-    path: string,
-    header: string,
+    progress: string,
+    createdAt: string,
     workflow: any
 }
 
 const WebhookList = () => {
-    const [allWebhook, setAllWebhook] = useState<AllWebhookProp[]>([]);
+    const [allCron, setAllCron] = useState<AllCronProp[]>([]);
     useEffect(() => {
-        Get('/api/webhook').then((response) => {
-            setAllWebhook(response.data.data)
+        Get('/api/cron').then((response) => {
+            setAllCron(response.data.data)
         }).catch((error) => {
         })
     }, [])
@@ -28,36 +27,35 @@ const WebhookList = () => {
                                 Title
                             </th>
                             <th scope="col" className="px-6 py-3">
-                                Method
-                            </th>
-                            <th scope="col" className="px-6 py-3">
-                                Header
+                                Progress
                             </th>
                             <th scope="col" className="px-6 py-3">
                                 Workspace
                             </th>
                             <th scope="col" className="px-6 py-3">
-                                Path
+                                Created At
                             </th>
+                            
                         </tr>
                     </thead>
                     <tbody>
-                        {allWebhook.map((webhook, index) =>
+                        {allCron.map((cron, index) =>
                             <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                                <th title={webhook.title} scope="row" className="px-6 py-4 cursor-pointer font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                    {webhook.title}
+                                <th title={cron.title} scope="row" className="px-6 py-4 cursor-pointer font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                    {cron.title}
                                 </th>
-                                <td title={webhook.method} className="px-6 py-4">
-                                    {webhook.method}
+                                <td title={cron.progress} className="px-6 py-4">
+                                    {cron.progress}
                                 </td>
-                                <td onClick={() => navigator.clipboard.writeText(webhook.header)} title={webhook.header} className="px-6 py-4 hover:underline cursor-pointer truncate max-w-6">
-                                    {webhook.header}
+                                <td title={cron.workflow.title} className="px-6 py-4">
+                                    {cron?.workflow.title}
                                 </td>
-                                <td title={webhook.workflow.title} className="px-6 py-4">
-                                    {webhook?.workflow.title}
-                                </td>
-                                <td title={`${import.meta.env.VITE_BACKEND_URL}/api${webhook.path}`} className="px-6 py-4">
-                                    {`${import.meta.env.VITE_BACKEND_URL}/api${webhook.path}`}
+                                <td className="px-6 py-4">
+                                    {new Date(cron.createdAt).toLocaleDateString("en-GB", {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                    })}
                                 </td>
                             </tr>)}
                     </tbody>

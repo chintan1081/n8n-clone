@@ -14,8 +14,6 @@ export default function CredentialsForm() {
     const [data, setData] = useState<any>({});
     const navigate = useNavigate()
 
-
-
     useEffect(() => {
         if (!credentialsId) {
             if (platform === 'telegram')
@@ -44,10 +42,9 @@ export default function CredentialsForm() {
         const response = await Post('/api/credential', {
             title,
             platform,
-            data: JSON.parse(data)
+            data
         })
         navigate('/credentials');
-        console.log(response.data);
     }
 
     const UpdateCredentials = async (event) => {
@@ -57,7 +54,6 @@ export default function CredentialsForm() {
             platform,
             data
         })
-
         navigate('/credentials');
     }
 
@@ -69,7 +65,6 @@ export default function CredentialsForm() {
                 setPlatform(data.platform);
                 setData(data.data);
             }).catch((error) => {
-                console.log(error);
             })
         }
     }, [credentialsId])

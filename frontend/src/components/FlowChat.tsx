@@ -6,12 +6,13 @@ import SourceNode from './nodes/SourceNode';
 import TargetNode from './nodes/TargetNode';
 import AiAgentNode from './nodes/AiAgentNode';
 import { FaRobot } from 'react-icons/fa';
-import { Get, Post, Put } from '@/assets/axios';
+import { Delete, Get, Post, Put } from '@/assets/axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import ToolsNode from './nodes/toolsNode';
 import LlmNode from './nodes/llmNode';
 import { toast } from 'react-toastify';
 import WebhookForm from './WebhookForm';
+import CronForm from './CronForm';
 
 function CustomNode({ data }: any) {
     return (
@@ -67,7 +68,6 @@ export default function FlowChart() {
     useEffect(() => {
         Get(`/api/workflow/${workflowId}`).then((response) => {
             const data = response.data;
-            console.log(data.nodes, '.nid..............nodedata');
             const nodesWithDelete = data.nodes.map((node: any) => ({
                 ...node,
                 data: {
@@ -79,7 +79,6 @@ export default function FlowChart() {
             setEdges(data.edges);
             setTitle(data.title);
         }).catch((error) => {
-            console.log(error);
         })
     }, [workflowId])
 
@@ -114,16 +113,14 @@ export default function FlowChart() {
     ]
 
     const HandleNode = (nodebarItem: any) => {
-        if(nodebarItem.nodeId === "manual"){
+        if (nodebarItem.nodeId === "manual") {
 
         }
-        else if(nodebarItem.nodeId === "cron"){
+        else if (nodebarItem.nodeId === "cron") {
             setIsCronOpen(true);
         }
-        else if(nodebarItem.nodeId === "webhook"){
+        else if (nodebarItem.nodeId === "webhook") {
             setIsWebhookOpen(true);
-        }else{
-            setIsCredentialsOpen(true);
         }
 
         if (nodebarItem.type === "sourceNode") {
@@ -174,21 +171,26 @@ export default function FlowChart() {
             edges,
             title
         })
-        console.log(response.data);
         toast.success(response.data.message)
         navigate(location.pathname);
     }
 
 
 
-    const HandleDeleteNode = (id: string) => {
+    const HandleDeleteNode = async (id: string) => {
         setNodes((prev) => {
             const node = prev.filter((node) => node.id !== id)
             return node;
         })
         setEdges((prev) => {
             return prev.filter((edge) => edge.source !== id && edge.target !== id)
-        })
+        });
+
+        if(id === 'webhook' ){
+            await Delete(`/api/webhook/${workflowId}`)
+        }else if(id === 'cron'){
+            await Delete(`/api/cron/${workflowId}`)
+        }
     }
 
     const HandleDeleteEdge = (currentEdge) => {
@@ -198,17 +200,12 @@ export default function FlowChart() {
     }
 
     const HandleNodesExecution = async () => {
-        const response = await Get(`/api/workflow/execute/${workflowId}`)
-        console.log(response.data);
+        try {
+            const response = await Get(`/api/workflow/execute/${workflowId}`)
+        } catch (error) {
+            toast.error(error.response.data.message);
+        }
     }
-
-    // const HandleNodeClick = (currentNode: any) => {
-    //     if (currentNode.id === 'webhook') {
-    //         const ncode = nodes.find((node: any) => currentNode.id === node.id);
-    //         console.log(ncode, nodes, '.................ncode');
-
-    //     }
-    // }
 
     return (
         <div className='grid grid-cols-4 text-black col-span-3 bg-zinc-900 h-full w-full relative'>
@@ -245,9 +242,10 @@ export default function FlowChart() {
                     <div onClick={HandleNodesExecution} className='p-2 cursor-pointer rounded  hover:bg-gray-900'>Execute</div>
                 </div>
             </div>
-            {(isWebhookOpen || isCredentialsOpen || isCronOpen) && <div className='z-1 absolute w-full bg-zinc-900/50 h-full'>
+            {(isWebhookOpen || isCronOpen) && <div className='z-1 absolute w-full bg-zinc-900/50 h-full'>
                 <div className='max-w-3xl mx-auto'>
                     {isWebhookOpen && <WebhookForm setIsWebhookOpen={setIsWebhookOpen} />}
+                    {isCronOpen && <CronForm setIsCronOpen={setIsCronOpen} />}
                 </div>
             </div>}
         </div>
