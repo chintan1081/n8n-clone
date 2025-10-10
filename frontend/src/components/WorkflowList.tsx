@@ -10,6 +10,8 @@ type AllWorkflowsProp = {
     nodes: object[],
     edges: object[],
     enable: boolean,
+    webhook: any,
+    cron: any,
     createdAt: string
 }
 
@@ -21,6 +23,8 @@ const WorkflowList = () => {
         Get('/api/workflow').then((response) => {
             setAllFlowchat(response.data);
         }).catch((error) => {
+            console.log(error);
+            
         })
     }, [])
 
@@ -46,13 +50,14 @@ const WorkflowList = () => {
         Get('/api/workflow').then((response) => {
             setAllFlowchat(response.data)
         }).catch((error) => {
+            console.log(error);
         })
     }
 
     const HandleNodesExecution = async (workflowId: string) => {
         try {
-            const response = await Get(`/api/workflow/execute/${workflowId}`);
-        } catch (error) {
+           await Get(`/api/workflow/execute/${workflowId}`);
+        } catch (error: any) {
             toast.error(error.response.data.message);
         }
     }
@@ -110,7 +115,7 @@ const WorkflowList = () => {
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <button disabled={flowchat.webhook !== null && flowchat.cron !== null} className={`${flowchat.webhook == null && flowchat.cron == null && 'hover:bg-gray-900 cursor-auto'} rounded p-2 cursor-pointer`}>
+                                    <button onClick={() => HandleNodesExecution(flowchat.id)} disabled={flowchat.webhook !== null && flowchat.cron !== null} className={`${flowchat.webhook == null && flowchat.cron == null && 'hover:bg-gray-900 cursor-auto'} rounded p-2 cursor-pointer`}>
                                         {flowchat.webhook == null && flowchat.cron == null && 'Execute'}
                                         {flowchat.webhook !== null && flowchat.cron == null && 'Webhook'}
                                         {flowchat.webhook == null && flowchat.cron !== null && 'Cron'}

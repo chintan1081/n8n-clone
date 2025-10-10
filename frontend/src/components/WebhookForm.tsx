@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
-import { Get, Post, Put } from '@/assets/axios'
+import { Post } from '@/assets/axios'
 import { useState } from 'react'
 import { toast } from 'react-toastify'
 import { useParams } from 'react-router-dom'
@@ -15,7 +15,7 @@ const WebhookForm = ({ setIsWebhookOpen }: any) => {
     const [secret, setSecret] = useState<string>();
     const { id: workflowId } = useParams()
 
-    const HandleWebhookForm = async (event) => {
+    const HandleWebhookForm = async (event: any) => {
         event.preventDefault();
         try {
             const response = await Post("/api/webhook", {
@@ -27,8 +27,8 @@ const WebhookForm = ({ setIsWebhookOpen }: any) => {
             })
             toast.success(response.data.message);
             setIsWebhookOpen(false);
-        }catch(error){
-            toast.error(error);
+        }catch(error: any){
+            toast.error(error.response.data.message);
         }
     }
 

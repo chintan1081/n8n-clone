@@ -15,6 +15,7 @@ const WebhookList = () => {
         Get('/api/webhook').then((response) => {
             setAllWebhook(response.data.data)
         }).catch((error) => {
+            console.log(error);
         })
     }, [])
 

@@ -14,6 +14,8 @@ const WebhookList = () => {
         Get('/api/cron').then((response) => {
             setAllCron(response.data.data)
         }).catch((error) => {
+            console.log(error);
+            
         })
     }, [])
 

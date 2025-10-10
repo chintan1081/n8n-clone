@@ -37,9 +37,9 @@ export default function CredentialsForm() {
         }
     }, [platform])
 
-    const HandleSubmitCredentials = async (event) => {
+    const HandleSubmitCredentials = async (event: any) => {
         event.preventDefault();
-        const response = await Post('/api/credential', {
+        await Post('/api/credential', {
             title,
             platform,
             data
@@ -47,9 +47,9 @@ export default function CredentialsForm() {
         navigate('/credentials');
     }
 
-    const UpdateCredentials = async (event) => {
+    const UpdateCredentials = async (event: any) => {
         event.preventDefault();
-        const response = await Put(`/api/credential/${credentialsId}`, {
+        await Put(`/api/credential/${credentialsId}`, {
             title,
             platform,
             data
@@ -65,6 +65,8 @@ export default function CredentialsForm() {
                 setPlatform(data.platform);
                 setData(data.data);
             }).catch((error) => {
+                console.log(error);
+                
             })
         }
     }, [credentialsId])

@@ -1,11 +1,10 @@
-import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, Handle, Position, Background, Panel, type Edge, type Node, type EdgeChange, type EdgeTypes } from '@xyflow/react';
+import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, Background, Panel, type Edge, type EdgeChange } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useState } from 'react';
 import { FiMinus, FiPlus } from 'react-icons/fi';
 import SourceNode from './nodes/SourceNode';
 import TargetNode from './nodes/TargetNode';
 import AiAgentNode from './nodes/AiAgentNode';
-import { FaRobot } from 'react-icons/fa';
 import { Delete, Get, Post, Put } from '@/assets/axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import ToolsNode from './nodes/toolsNode';
@@ -14,43 +13,43 @@ import { toast } from 'react-toastify';
 import WebhookForm from './WebhookForm';
 import CronForm from './CronForm';
 
-function CustomNode({ data }: any) {
-    return (
-        <>
-            <div className='p-4 rounded-full bg-zinc-900 text-white border flex gap-2 items-center'>
-                <div className='text-lg'><FaRobot /></div>
-            </div>
-            <Handle type="target" position={Position.Top} />
-        </>
+// function CustomNode({ data }: any) {
+//     return (
+//         <>
+//             <div className='p-4 rounded-full bg-zinc-900 text-white border flex gap-2 items-center'>
+//                 <div className='text-lg'><FaRobot /></div>
+//             </div>
+//             <Handle type="target" position={Position.Top} />
+//         </>
 
-    );
-}
+//     );
+// }
 
 const nodeTypes = {
     sourceNode: SourceNode,
     targetNode: TargetNode,
     aiAgentnode: AiAgentNode,
-    custom: CustomNode,
+    // custom: CustomNode,
     toolsNode: ToolsNode,
     llmNode: LlmNode
 };
 
-const initialNodes = [
-    {
-        id: "n1",
-        type: "custom",
-        position: { x: 0, y: 0 },
-        data: { label: "My Custom Node", description: "This is a test" },
+// const initialNodes = [
+//     {
+//         id: "n1",
+//         type: "custom",
+//         position: { x: 0, y: 0 },
+//         data: { label: "My Custom Node", description: "This is a test" },
 
-    },
-    {
-        id: "n",
-        type: "custom",
-        position: { x: 0, y: 200 },
-        data: { label: "My Custom Node", description: "This is a test" },
+//     },
+//     {
+//         id: "n",
+//         type: "custom",
+//         position: { x: 0, y: 200 },
+//         data: { label: "My Custom Node", description: "This is a test" },
 
-    },
-];
+//     },
+// ];
 
 // const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
 
@@ -58,12 +57,10 @@ export default function FlowChart() {
     const { id: workflowId } = useParams();
     const navigate = useNavigate();
     const [nodes, setNodes] = useState<any>([]);
-    const [edges, setEdges] = useState([]);
+    const [edges, setEdges] = useState<any>([]);
     const [title, setTitle] = useState("");
     const [isWebhookOpen, setIsWebhookOpen] = useState(false);
     const [isCronOpen, setIsCronOpen] = useState(false);
-    const [isCredentialsOpen, setIsCredentialsOpen] = useState(false);
-
 
     useEffect(() => {
         Get(`/api/workflow/${workflowId}`).then((response) => {
@@ -79,21 +76,23 @@ export default function FlowChart() {
             setEdges(data.edges);
             setTitle(data.title);
         }).catch((error) => {
+            console.log(error);
+            
         })
     }, [workflowId])
 
     const onNodesChange = useCallback(
-        (changes) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
+        (changes: any) => setNodes((nodesSnapshot: any) => applyNodeChanges(changes, nodesSnapshot)),
         [],
     );
 
     const onEdgesChange = useCallback(
-        (changes: EdgeChange<Edge>[]) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
+        (changes: EdgeChange<Edge>[]) => setEdges((edgesSnapshot: any) => applyEdgeChanges(changes, edgesSnapshot)),
         [],
     );
 
     const onConnect = useCallback(
-        (params) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
+        (params: any) => setEdges((edgesSnapshot: any) => addEdge(params, edgesSnapshot)),
         [],
     );
 
@@ -124,7 +123,7 @@ export default function FlowChart() {
         }
 
         if (nodebarItem.type === "sourceNode") {
-            const node = nodes.filter((node) => node.type !== "sourceNode")
+            const node = nodes.filter((node: any) => node.type !== "sourceNode")
             setNodes([...node, {
                 id: nodebarItem.nodeId,
                 type: nodebarItem.type,
@@ -178,12 +177,12 @@ export default function FlowChart() {
 
 
     const HandleDeleteNode = async (id: string) => {
-        setNodes((prev) => {
-            const node = prev.filter((node) => node.id !== id)
+        setNodes((prev: any) => {
+            const node = prev.filter((node: any) => node.id !== id)
             return node;
         })
-        setEdges((prev) => {
-            return prev.filter((edge) => edge.source !== id && edge.target !== id)
+        setEdges((prev: any) => {
+            return prev.filter((edge: any) => edge.source !== id && edge.target !== id)
         });
 
         if(id === 'webhook' ){
@@ -193,16 +192,17 @@ export default function FlowChart() {
         }
     }
 
-    const HandleDeleteEdge = (currentEdge) => {
-        setEdges((prev) => {
-            return prev.filter((edge) => edge.id !== currentEdge.id)
+    const HandleDeleteEdge = (currentEdge: any, event: any) => {
+        event
+        setEdges((prev: any) => {
+            return prev.filter((edge: any) => edge.id !== currentEdge.id)
         })
     }
 
     const HandleNodesExecution = async () => {
         try {
-            const response = await Get(`/api/workflow/execute/${workflowId}`)
-        } catch (error) {
+            await Get(`/api/workflow/execute/${workflowId}`)
+        } catch (error: any) {
             toast.error(error.response.data.message);
         }
     }
@@ -219,7 +219,7 @@ export default function FlowChart() {
                 nodeTypes={nodeTypes}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
-                onEdgeClick={(event, edge) => HandleDeleteEdge(edge)}
+                onEdgeClick={(event, edge) => HandleDeleteEdge(edge, event)}
                 onConnect={onConnect}
                 fitView
                 className={nodebar ? 'col-span-3' : 'col-span-4'}

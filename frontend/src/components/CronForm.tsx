@@ -11,9 +11,10 @@ import { useParams } from "react-router-dom";
 
 function CronForm({ setIsCronOpen }: any) {
   const [title, setTitle] = useState("")
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<any>(new Date());
   const { id: workflowId } = useParams();
-
+  const maxTime: Date = new Date();
+  maxTime.setHours(23, 59);
   const handleSubmit = async (event: any) => {
     event.preventDefault();
     const hour = selectedDate.getHours();
@@ -34,7 +35,7 @@ function CronForm({ setIsCronOpen }: any) {
       })
       toast.success(response.data.message);
       setIsCronOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.response.data.message);
     }
   };
@@ -70,7 +71,7 @@ function CronForm({ setIsCronOpen }: any) {
                 dateFormat="MMMM d, yyyy h:mm aa"
                 minDate={new Date()}
                 minTime={new Date(new Date().getTime() + 5 * 60 * 1000)}
-                maxTime={new Date().setHours(23, 59)}
+                maxTime={maxTime}
               />
             </div>
             <Button className='cursor-pointer' type='submit'>Schedule</Button>

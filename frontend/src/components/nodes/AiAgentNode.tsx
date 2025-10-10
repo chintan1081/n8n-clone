@@ -3,10 +3,6 @@ import { FaRobot } from "react-icons/fa"
 import { FiTrash2 } from "react-icons/fi"
 
 const AiAgentNode = ({ data }: any) => {
-        const connectionsSource = useNodeConnections({
-            handleType: "source",
-        });
-
         const connectionsTarget = useNodeConnections({
             handleType: "target",
         });

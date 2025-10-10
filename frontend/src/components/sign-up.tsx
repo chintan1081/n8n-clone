@@ -36,7 +36,7 @@ export default function SignUpPage() {
                 toast.success(response.data.message);
                 navigate('/signin');
             }
-        } catch (error) {
+        } catch (error: any) {
             toast.error(error.response.data.message)
         } finally {
             setIsSubmitting(false);
